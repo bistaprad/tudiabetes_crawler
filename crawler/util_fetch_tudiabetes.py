@@ -34,31 +34,61 @@ def dump_dicussion_toics(db, COLL_DISCUSSION_TOPICS):
 
 
 ######################
-# dump_dicussion_toics()
 ## get a complete discussion
 
 def dump_discussion(ids, db, COLL_DISCUSSION):
     coll = db[COLL_DISCUSSION]
+    count = 0
     for id in ids:
         discussion_id = id[0]
         slug = id[1]
-        discussion_url = "http://www.tudiabetes.org/forum/t/" + slug + "/" + str(discussion_id) + ".json"
-
-        ##get the list of topics from the json response
-        json_discussion = requests.get(discussion_url).json()
-        # pprint.pprint(json_discussion)
 
         ##find all replies to this discussion
-        ## ???????
+        page = 1
+        discussion_complete = {}
+        first = True
+        while True:
+            discussion_url = "http://www.tudiabetes.org/forum/t/" + slug + "/" + str(
+                discussion_id) + ".json?page=" + str(page)
+
+            # if this url doesnt return a json response stop the json request, by breaking this while loop
+            try:
+                json_discussion = requests.get(discussion_url).json()
+                # pprint.pprint(json_discussion)
+            except ValueError:
+                break
+            else:
+                page += 1
+                if (first):
+                    discussion_complete = json_discussion
+                    first = False
+                else:
+                    for p in json_discussion["post_stream"]["posts"]:
+                        discussion_complete["post_stream"]["posts"].append(p)
+                        # print "post_count:" + str(index) +" >> post_id: " + str(p["id"]) + " >> "+ p["cooked"]
 
         ## save to mongodb
-        res = coll.insert_one(json_discussion)
-        print "discussion inserted: " + str(id) + "--" + slug + "--" + str(res)
+        res = coll.insert_one(discussion_complete)
+
+        try:
+            discussion_complete["post_stream"]["posts"]
+        except KeyError:
+            replies = 0
+        else:
+            replies = str(len(discussion_complete["post_stream"]["posts"]))
+
+        print "inserted discussion: count = %s replies = %s [id, slug] = %s):" % (str(count), replies, str(id))
+        count += 1
+
+
+# slug = "word-association-game"
+# discussion_id = str(1311)
+
+# slug = "are-we-close-to-a-cure-scientists-think-so"
+# discussion_id = str(50840)
 
 
 ## to remove
-# slug = "i-started-on-afrezza-last-night"
-# discussion_id = str(23316)
 # discuss = [slug, discussion_id]
 # dump_discussion(discuss)
 
