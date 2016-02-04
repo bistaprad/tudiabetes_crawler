@@ -39,13 +39,13 @@ def main(args):
     # ft.dump_list_users(db, COLL_USERS) # dump all the users list
 
     # retrive discussion topic list from mongodb and dump complete discussion
-    topic_ids = fm.get_topic_ids(db, COLL_DISCUSSION_TOPICS)  # retrieve list of topic ids and slug from mongo  
+    topic_ids = fm.get_topic_ids(db, COLL_DISCUSSION_TOPICS)  # retrieve list of topic ids and slug from mongo
     ft.dump_discussion(topic_ids, db, COLL_DISCUSSION)  # dump all the discussion from forum **
 
     # retrieve user list from mongodb and dump all user ifo
     users = fm.get_users(db, COLL_USERS)  # retrieve list of usernames
     ft.dump_user_summary(users, db, COLL_USER_SUMMARY)  # dump user summary for all users **
-    ft.dump_user_replies(users, db, COLL_USER_REPLY)  # dump user replies for all users **
+    ft.dump_user_replies(users, db, COLL_USER_REPLY)  # dump user replies for all users *
 
 
 if __name__ == '__main__':
