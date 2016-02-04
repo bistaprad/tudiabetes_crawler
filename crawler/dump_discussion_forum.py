@@ -39,7 +39,7 @@ def main(args):
     # ft.dump_list_users(db, COLL_USERS) # dump all the users list
 
     # retrive discussion topic list from mongodb and dump complete discussion
-    topic_ids = fm.get_topic_ids(db, COLL_DISCUSSION_TOPICS)  # retrieve list of topic ids and slug from mongo
+    topic_ids = fm.get_topic_ids(db, COLL_DISCUSSION_TOPICS)  # retrieve list of topic ids and slug from mongo  
     ft.dump_discussion(topic_ids, db, COLL_DISCUSSION)  # dump all the discussion from forum **
 
     # retrieve user list from mongodb and dump all user ifo
