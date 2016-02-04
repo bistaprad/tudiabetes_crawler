@@ -103,10 +103,9 @@ def dump_list_users(db, COLL_USERS):
     while True:
 
         # time.sleep(1)
+
         users_url = "http://www.tudiabetes.org/forum/directory_items.json?order=likes_received&page=" + str(
-                page) + "&period=all&_=" + str(epoch)
-        users_url = "http://www.tudiabetes.org/forum/directory_items.json?order=likes_received&page=" + str(
-                page) + "&period=all&_=" + str(epoch)
+            page) + "&period=all&_=" + str(epoch)
 
         json_users = requests.get(users_url).json()
         users = json_users["directory_items"]
