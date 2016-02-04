@@ -3,6 +3,7 @@ __author__ = "pradeepbista"
 import requests
 import pprint
 import time
+import util_fetch_mongo as fm
 
 
 ###############################
@@ -36,10 +37,19 @@ def dump_dicussion_toics(db, COLL_DISCUSSION_TOPICS):
 ######################
 ## get a complete discussion
 
-def dump_discussion(ids, db, COLL_DISCUSSION):
+def dump_discussion(ids, db, COLL_DISCUSSION, COLL_SAVE_STATUS):
     coll = db[COLL_DISCUSSION]
-    count = 0
+    coll_status = db[COLL_SAVE_STATUS]
+
+    # find the list discussion id which have not been saved in mongodb
+    unsaved_ids = []
     for id in ids:
+        if not fm.check_if_saved(db, COLL_SAVE_STATUS, COLL_DISCUSSION, id[0]):
+            unsaved_ids.append(id)
+
+    count = 0
+    for id in unsaved_ids:
+
         discussion_id = id[0]
         slug = id[1]
 
@@ -69,6 +79,9 @@ def dump_discussion(ids, db, COLL_DISCUSSION):
 
         ## save to mongodb
         res = coll.insert_one(discussion_complete)
+
+        # save this id in "save" collection
+        coll_status.insert_one({"collection":COLL_DISCUSSION, "id":id[0]})
 
         try:
             discussion_complete["post_stream"]["posts"]
@@ -122,12 +135,21 @@ def dump_list_users(db, COLL_USERS):
                 print "user inserted: " + u["user"]["username"]
 
 
+
 ###################
 ## get user summary
-def dump_user_summary(usernames, db, COLL_USER_SUMMARY):
+def dump_user_summary(usernames, db, COLL_USER_SUMMARY, COLL_SAVE_STATUS):
     collection = db[COLL_USER_SUMMARY]
+    coll_status = db[COLL_SAVE_STATUS]
 
+    # find the list discussion usernames which have not been saved in mongodb
+    unsaved_usernames = []
     for username in usernames:
+        if not fm.check_if_saved(db, COLL_SAVE_STATUS, COLL_USER_SUMMARY, username):
+            unsaved_usernames.append(username)
+
+    # print len(unsaved_usernames)
+    for username in unsaved_usernames:
         user_url = "http://www.tudiabetes.org/forum/users/" + username + "/summary.json"
 
         json_user = requests.get(user_url).json()
@@ -135,7 +157,10 @@ def dump_user_summary(usernames, db, COLL_USER_SUMMARY):
 
         ## dump to mongodb
         collection.insert_one(user)
-        print "user inserted: " + username
+
+        # save this id in "save" collection
+        coll_status.insert_one({"collection":COLL_USER_SUMMARY, "id":username})
+        print "user summary inserted: " + username
 
 
 # dump_user_summary("terry4")
@@ -145,11 +170,23 @@ def dump_user_summary(usernames, db, COLL_USER_SUMMARY):
 ###################
 ## get user replies
 
-def dump_user_replies(usernames, db, COLL_USER_REPLY):
+def dump_user_replies(usernames, db, COLL_USER_REPLY, COLL_SAVE_STATUS):
     collection = db[COLL_USER_REPLY]
+    coll_status = db[COLL_SAVE_STATUS]
+
+    # find the list discussion usernames which have not been saved in mongodb
+    unsaved_usernames = []
+    for username in usernames:
+        if not fm.check_if_saved(db, COLL_SAVE_STATUS, COLL_USER_REPLY, username):
+            unsaved_usernames.append(username)
+
+    print len(unsaved_usernames)
+
     for username in usernames:
         epoch = int(round(time.time() * 1000))
         offset = 0  # starts from 0
+        replies_complete = []
+        first = True
         while True:
             reply_url = "http://www.tudiabetes.org/forum/user_actions.json?offset=" + str(
                     offset) + "&username=" + username + "&filter=5&_=" + str(epoch)
@@ -160,10 +197,19 @@ def dump_user_replies(usernames, db, COLL_USER_REPLY):
             if (len(reply) == 0):
                 break
             else:
-                offset += 30
-                for r in reply:
-                    ### save to mongodb
-                    collection.insert_one(r)
-                    print "user reply inserted: " + username
+                if(first):
+                    replies_complete = reply
+                    first = False
+                else:
+                    offset += 30
+                    for r in reply:
+                        ### save to mongodb
+                        replies_complete.append(r)
 
-                    # dump_user_replies("larryest2")
+        reply_dict = {"username": username, "reply": replies_complete}
+        #dump the list of relies to the mongodb
+        collection.insert(reply_dict)
+
+        # save this id in "save" collection
+        coll_status.insert_one({"collection":COLL_USER_REPLY, "id":username})
+        print "user reply inserted: " + username
