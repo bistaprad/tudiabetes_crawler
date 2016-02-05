@@ -13,12 +13,9 @@ def dump_dicussion_toics(db, COLL_DISCUSSION_TOPICS):
 
     page = 1  # starts from 1
     while True:
-
         # time.sleep(1)
-
         discussion_url = "http://www.tudiabetes.org/forum/latest.json?no_definitions=true&order=default&page=" + str(
                 page) + "&per_page=30"
-
         ##get the list of topics from the json response
         json_discussion = requests.get(discussion_url).json()
         topics = json_discussion["topic_list"]["topics"]
@@ -26,12 +23,16 @@ def dump_dicussion_toics(db, COLL_DISCUSSION_TOPICS):
         if (len(topics) == 0):
             break
         else:
-            page += 1
             print "page: %d topics: %d" % (page, len(topics))
+            page += 1
             # dump the discussion in mongodb
             for t in topics:
-                res = coll.insert_one(t)
-                print "id inserted: " + str(t["id"]) + "--" + str(res)
+                ###check if the discussion topic is already saved
+                if fm.check_discussion(db, COLL_DISCUSSION_TOPICS, t["id"]):
+                    print "discussion topic exists"
+                else:
+                    res = coll.insert_one(t)
+                    print "id inserted: " + str(t["id"])
 
 
 ######################
@@ -46,13 +47,10 @@ def dump_discussion(ids, db, COLL_DISCUSSION, COLL_SAVE_STATUS):
     for id in ids:
         if not fm.check_if_saved(db, COLL_SAVE_STATUS, COLL_DISCUSSION, id[0]):
             unsaved_ids.append(id)
-
     count = 0
     for id in unsaved_ids:
-
         discussion_id = id[0]
         slug = id[1]
-
         ##find all replies to this discussion
         page = 1
         discussion_complete = {}
@@ -130,9 +128,14 @@ def dump_list_users(db, COLL_USERS):
             print "page: %d users: %d" % (page, len(users))
             ## save all users to mongodb
             for u in users:
-                coll.insert_one(u)
-                # print u["user"]["username"]
-                print "user inserted: " + u["user"]["username"]
+
+                ## check if the user already saved
+                if fm.check_user(db, COLL_USERS, u["id"]):
+                    print "user exists"
+                else:
+                    coll.insert_one(u)
+                    # print u["user"]["username"]
+                    print "user inserted: " + u["user"]["username"]
 
 
 

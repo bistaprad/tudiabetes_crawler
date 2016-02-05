@@ -25,6 +25,13 @@ def get_users(db, COLL_USERS):
 
 # retrieve the datus if an id in a collection has been saved
 # for example, if a discussion (235631) has been dumped or not
-def check_if_saved(db, COLL_SAVE_STATUS, col, id):
-     return db[COLL_SAVE_STATUS].find({"collection":col, "id":id}).count() > 0
+def check_user(db, COLL_USERS, userid):
+     return db[COLL_USERS].find({"id":userid}).count() > 0
 
+
+## check if a discussion title has been saved
+def check_discussion(db, COLL_DISCUSSION_TOPICS, id):
+     return db[COLL_DISCUSSION_TOPICS].find({"id":id}).count() > 0
+
+
+## check if a user has been saved
