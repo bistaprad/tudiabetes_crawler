@@ -9,7 +9,7 @@ Inspite of inspecting the HTML file, this program utilizes the json response fro
 
 Before you run this script please install the following in your system.
 * [Python](https://www.python.org/downloads/)
- *  [MongoDB](https://docs.mongodb.org/manual/installation/)
+* [MongoDB](https://docs.mongodb.org/manual/installation/)
 
 
 #### How to run this script?
