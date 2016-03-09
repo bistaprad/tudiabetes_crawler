@@ -22,8 +22,8 @@ pradeepbista$ python dump_discussion_forum.py discussion_topic_list
 
 Use arguments below in sequential order once it gets completed.
 
-1) To save the discussion topic list : discussion_topic_list
-2) To save the user list: user_list
-3) To save the discussions with replies : discussions
-4) To save the individual user summary: user_sumary
-5) To save the user replies: user_replies
+* To save the discussion topic list : discussion_topic_list
+* To save the user list: user_list
+* To save the discussions with replies : discussions
+* To save the individual user summary: user_sumary
+* To save the user replies: user_replies
