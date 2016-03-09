@@ -9,10 +9,17 @@ import sys
 
 ###############################
 ## get all discussions topics
-def dump_dicussion_toics(db, COLL_DISCUSSION_TOPICS):
+def dump_dicussion_toics(db, COLL_DISCUSSION_TOPICS, COLL_SAVE_STATUS):
     coll = db[COLL_DISCUSSION_TOPICS]
-
     page = 1  # starts from 1
+    doc = db[COLL_SAVE_STATUS].find({"topic":"discussion"})
+
+    for d in doc:
+        page = d["page"]
+
+    # print page
+    # print "-----------"
+
     while True:
         # time.sleep(1)
         discussion_url = "http://www.tudiabetes.org/forum/latest.json?no_definitions=true&order=default&page=" + str(
@@ -24,8 +31,10 @@ def dump_dicussion_toics(db, COLL_DISCUSSION_TOPICS):
         if (len(topics) == 0):
             break
         else:
+            # page of the discussion topics
             print "page: %d topics: %d" % (page, len(topics))
             page += 1
+            db[COLL_SAVE_STATUS].update({"topic":"discussion"},  { "$set" : {"page":page} }, upsert = True )
             # dump the discussion in mongodb
             for t in topics:
                 ###check if the discussion topic is already saved
@@ -34,7 +43,6 @@ def dump_dicussion_toics(db, COLL_DISCUSSION_TOPICS):
                 else:
                     res = coll.insert_one(t)
                     print "id saved: " + str(t["id"])
-
 
 ######################
 ## get a complete discussion
@@ -117,15 +125,17 @@ def dump_discussion(ids, db, COLL_DISCUSSION, COLL_SAVE_STATUS):
 
 ####################
 ## get list of users
-def dump_list_users(db, COLL_USERS):
+def dump_list_users(db, COLL_USERS, COLL_SAVE_STATUS):
     coll = db[COLL_USERS]
 
-    epoch = int(round(time.time() * 1000))
     page = 1  # starts from 1
+    doc = db[COLL_SAVE_STATUS].find({"topic":"users"})
+    for d in doc:
+        page = d["page"]
+
+    epoch = int(round(time.time() * 1000))
     while True:
-
         # time.sleep(1)
-
         users_url = "http://www.tudiabetes.org/forum/directory_items.json?order=likes_received&page=" + str(
             page) + "&period=all&_=" + str(epoch)
 
@@ -135,14 +145,15 @@ def dump_list_users(db, COLL_USERS):
         if (len(users) == 0):
             break
         else:
-            page += 1
+            # page of the users list
             print "page: %d users: %d" % (page, len(users))
+            page += 1
+            db[COLL_SAVE_STATUS].update({"topic":"users"},  { "$set" : {"page":page} }, upsert = True )
             ## save all users to mongodb
             for u in users:
-
                 ## check if the user already saved
                 if fm.check_user(db, COLL_USERS, u["id"]):
-                    print "user exists"
+                    print "user already saved : " + u["user"]["username"]
                 else:
                     coll.insert_one(u)
                     # print u["user"]["username"]
