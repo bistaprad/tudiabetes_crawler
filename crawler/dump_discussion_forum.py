@@ -35,28 +35,46 @@ COLL_USER_REPLY = "user_reply"
 COLL_SAVE_STATUS = "status"
 
 def main(args):
+
     client = MongoClient(MONGODB_URI)
     db = client.tudiabetes
 
     #***********************************
-    # dump discussip topics and user list
-    ft.dump_dicussion_toics(db, COLL_DISCUSSION_TOPICS) # dump discussion topics from the forum
-    print "*"*15 + "DISCUSSION LIST SAVED" + "*"*15
-    ft.dump_list_users(db, COLL_USERS) # dump all the users list
-    print "*"*15 + "USER LIST SAVED" + "*"*15
+    if args[0] == "discussion_topic_list":
+        # dump discussion topics and user list
+        ft.dump_dicussion_toics(db, COLL_DISCUSSION_TOPICS) # dump discussion topics from the forum
+        print "*"*15 + "DISCUSSION LIST SAVED" + "*"*15
 
-    #***********************************
-    # retrive discussion topic list from mongodb and dump complete discussion
-    topic_ids = fm.get_topic_ids(db, COLL_DISCUSSION_TOPICS)  # retrieve list of topic ids and slug from mongo
-    ft.dump_discussion(topic_ids, db, COLL_DISCUSSION, COLL_SAVE_STATUS)  # dump all the discussion from forum
-    print "*"*15 + "DISCUSSIONS SAVED" + "*"*15
+    elif args[0] == "user_list":
+        ft.dump_list_users(db, COLL_USERS) # dump all the users list
+        print "*"*15 + "USER LIST SAVED" + "*"*15
 
-    # retrieve user list from mongodb and dump user information: summary and replies
-    users = fm.get_users(db, COLL_USERS)  # retrieve list of usernames
-    ft.dump_user_summary(users, db, COLL_USER_SUMMARY, COLL_SAVE_STATUS)  # dump user summary for all users
-    print "*"*15 + "USER SUMMARY SAVED" + "*"*15
-    ft.dump_user_replies(users, db, COLL_USER_REPLY, COLL_SAVE_STATUS)  # dump user replies for all users
-    print "*"*15 + "DISCUSSION REPLLIES SAVED" + "*"*15
+
+    elif args[0] == "discussions":
+        # retrive discussion topic list from mongodb and dump complete discussion
+        topic_ids = fm.get_topic_ids(db, COLL_DISCUSSION_TOPICS)  # retrieve list of topic ids and slug from mongo
+        ft.dump_discussion(topic_ids, db, COLL_DISCUSSION, COLL_SAVE_STATUS)  # dump all the discussion from forum
+        print "*"*15 + "DISCUSSIONS SAVED" + "*"*15
+
+    elif args[0] == "user_sumary":
+        # retrieve user list from mongodb and dump user information: summary and replies
+        users = fm.get_users(db, COLL_USERS)  # retrieve list of usernames
+        ft.dump_user_summary(users, db, COLL_USER_SUMMARY, COLL_SAVE_STATUS)  # dump user summary for all users
+        print "*"*15 + "USER SUMMARY SAVED" + "*"*15
+
+    elif args[0] == "user_replies":
+        users = fm.get_users(db, COLL_USERS)  # retrieve list of usernames
+        ft.dump_user_replies(users, db, COLL_USER_REPLY, COLL_SAVE_STATUS)  # dump user replies for all users
+        print "*"*15 + "DISCUSSION REPLLIES SAVED" + "*"*15
+
+    else:
+        print "Invalid argument !!! \n"
+        print "Use arguments as below in sequential order"
+        print "1) To save the discussion topic list : discussion_topic_list"
+        print "2) To save the user list: user_list"
+        print "3) To save the discussions with replies : discussions"
+        print "4) To save the individual user summary: user_sumary"
+        print "5) To save the user replies: user_replies"
 
 if __name__ == '__main__':
     main(sys.argv[1:])
