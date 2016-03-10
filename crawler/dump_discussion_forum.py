@@ -39,16 +39,14 @@ def main(args):
     client = MongoClient(MONGODB_URI)
     db = client.tudiabetes
 
-    #***********************************
     if args[0] == "discussion_topic_list":
         # dump discussion topics and user list
-        ft.dump_dicussion_toics(db, COLL_DISCUSSION_TOPICS) # dump discussion topics from the forum
+        ft.dump_dicussion_toics(db, COLL_DISCUSSION_TOPICS, COLL_SAVE_STATUS) # dump discussion topics from the forum
         print "*"*15 + "DISCUSSION LIST SAVED" + "*"*15
 
     elif args[0] == "user_list":
-        ft.dump_list_users(db, COLL_USERS) # dump all the users list
+        ft.dump_list_users(db, COLL_USERS, COLL_SAVE_STATUS) # dump all the users list
         print "*"*15 + "USER LIST SAVED" + "*"*15
-
 
     elif args[0] == "discussions":
         # retrive discussion topic list from mongodb and dump complete discussion
