@@ -224,7 +224,14 @@ def dump_user_replies(usernames, db, COLL_USER_REPLY, COLL_SAVE_STATUS):
                         offset) + "&username=" + username + "&filter=5&_=" + str(epoch)
 
                 json_reply = requests.get(reply_url).json()
-                reply = json_reply["user_actions"]
+                # reply = json_reply["user_actions"]
+
+                try:
+                    json_reply["user_actions"]
+                except KeyError:
+                    reply = ""
+                else:
+                    reply = json_reply["user_actions"]
 
                 if (len(reply) == 0):
                     break
