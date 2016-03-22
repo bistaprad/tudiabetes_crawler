@@ -29,6 +29,10 @@ COLL_USER_SUMMARY = "user_summary"
 # for example, http://www.tudiabetes.org/forum/users/terry4/activity/replies
 COLL_USER_REPLY = "user_reply"
 
+# user description stored in this collection
+# for example, http://www.tudiabetes.org/forum/users/rgcainmd/activity
+COLL_USER_DESCRIPTION = "user_description"
+
 # this collection saves specific user/discussion if it has been downloaded.
 # In case of interruption during the download this status helps to avoid the downloaded data again.
 # {collection_name = "discussions", id:"57213"}
@@ -54,7 +58,7 @@ def main(args):
         ft.dump_discussion(topic_ids, db, COLL_DISCUSSION, COLL_SAVE_STATUS)  # dump all the discussion from forum
         print "*"*15 + "DISCUSSIONS SAVED" + "*"*15
 
-    elif args[0] == "user_sumary":
+    elif args[0] == "user_summary":
         # retrieve user list from mongodb and dump user information: summary and replies
         users = fm.get_users(db, COLL_USERS)  # retrieve list of usernames
         ft.dump_user_summary(users, db, COLL_USER_SUMMARY, COLL_SAVE_STATUS)  # dump user summary for all users
@@ -65,14 +69,20 @@ def main(args):
         ft.dump_user_replies(users, db, COLL_USER_REPLY, COLL_SAVE_STATUS)  # dump user replies for all users
         print "*"*15 + "DISCUSSION REPLLIES SAVED" + "*"*15
 
+    elif args[0] == "user_description":
+        users = fm.get_users(db, COLL_USERS)  # retrieve list of usernames
+        ft.dump_user_description(users, db, COLL_USER_DESCRIPTION, COLL_SAVE_STATUS)  # dump user description for all users
+        print "*"*15 + "USER DISCUSSION SAVED" + "*"*15
+
     else:
         print "Invalid argument !!! \n"
         print "Use arguments as below in sequential order"
         print "1) To save the discussion topic list : discussion_topic_list"
         print "2) To save the user list: user_list"
         print "3) To save the discussions with replies : discussions"
-        print "4) To save the individual user summary: user_sumary"
+        print "4) To save the individual user summary: user_summary"
         print "5) To save the user replies: user_replies"
+        print "6) To save the user description: user_description"
 
 if __name__ == '__main__':
     main(sys.argv[1:])
