@@ -252,3 +252,41 @@ def dump_user_replies(usernames, db, COLL_USER_REPLY, COLL_SAVE_STATUS):
             # save this id in "save" collection
             coll_status.insert_one({"collection":COLL_USER_REPLY, "id":username})
             print "user reply saved: " + username
+
+
+###################
+## get user description
+def dump_user_description(usernames, db, COLL_USER_DESCRIPTION, COLL_SAVE_STATUS):
+    collection = db[COLL_USER_DESCRIPTION]
+    coll_status = db[COLL_SAVE_STATUS]
+
+    # find the list discussion usernames which have not been saved in mongodb
+    # unsaved_usernames = []
+    print "-------------"
+    # cn = 0
+    # for username in usernames:
+    #     cn = cn + 1
+    #     print cn
+    #     if not fm.check_if_saved(db, COLL_SAVE_STATUS, COLL_USER_SUMMARY, username):
+    #         unsaved_usernames.append(username)
+
+    # print len(unsaved_usernames)
+    for username in usernames:
+        if fm.check_if_saved(db, COLL_SAVE_STATUS, COLL_USER_DESCRIPTION, username):
+            print "user description already saved : " + username
+        else:
+            user_url = "http://www.tudiabetes.org/forum/users/" + username + "/activity.json"
+            json_desc = requests.get(user_url).json()
+            # json_desc = json_desc["user"]
+
+            try:
+                json_desc["user"]
+            except KeyError:
+                continue
+            else:
+                json_desc = json_desc["user"]
+                ## dump to mongodb
+                collection.insert_one(json_desc)
+                # save this id in "save" collection
+                coll_status.insert_one({"collection":COLL_USER_DESCRIPTION, "id":username})
+                print "user summary saved: " + username
