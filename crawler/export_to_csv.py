@@ -56,7 +56,7 @@ def main(args):
     else:
         print "Invalid argument !!! \n"
         print "Use arguments as below in sequential order"
-        print "1) To save the discussion topic list : discussion_topic_list"
+        print "1) To export discussions in csv format : discussions"
         print "2) To save the user list: user_list"
 
 if __name__ == '__main__':
