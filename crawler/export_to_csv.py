@@ -46,7 +46,7 @@ def main(args):
 
     if args[0] == "discussions":
         # export discussions to csv
-        ex.discussions(db, COLL_DISCUSSION)
+        ex.discussions(db, COLL_DISCUSSION, COLL_SAVE_STATUS)
 
 
     # elif args[0] == "user_list":

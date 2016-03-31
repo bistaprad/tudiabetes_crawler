@@ -1,15 +1,25 @@
 import sys
+import re
+from bs4 import BeautifulSoup
+
+import util_fetch_mongo as fm
 
 ### export discussions to csv file
-def discussions(db, COLL_DISCUSSION):
-    cursor = db[COLL_DISCUSSION].find()
+def discussions(db, COLL_DISCUSSION, COLL_SAVE_STATUS):
 
-    header_disucssion = "like_count,highest_post_number,id,user_id,title,last_posted_at,participant_count,views,reply_count,links,sum_of_clicks,replies"
+    cursor = db[COLL_DISCUSSION].find()
+    coll_status = db[COLL_SAVE_STATUS]
+
+
+
+    header_disucssion = "like_count,highest_post_number,discuss_id,user_id,title,last_posted_at,participant_count,views,reply_count,links,sum_of_clicks,replies"
     header_replies = ",post_number,quote_count,updated_at,moderator,reads,reply_count,id,avg_time,cooked,topic_id,username,user_created_at,user_id,incoming_link_count,reply_to_post_number"
     header = header_disucssion + header_replies + "\n"
 
-    f = open("discussions.csv", "w")
-    f.write(header)
+    f = open("discussions.csv", "a")
+
+    if(coll_status.find({"collection":"discussion_export"}).count() == 0):
+        f.write(header)
 
     for d in cursor:
 
@@ -144,19 +154,60 @@ def discussions(db, COLL_DISCUSSION):
             incoming_link_count = p["incoming_link_count"]
             reply_to_post_number = p["reply_to_post_number"]
 
-            line_post = [post_number, quote_count, updated_at, moderator, reads, reply_count, id, avg_time, cooked, topic_id, username, user_created_at, user_id, incoming_link_count, reply_to_post_number]
+            # print cooked
+            # cooked = re.search('<p>(.*)</p>', cooked).group(1)
 
-            # print line_discuss
-            # print len(line_post)
+            if fm.check_if_saved(db, COLL_SAVE_STATUS, "discussion_export", id):
+                print "Topic ID : " + str(id) + " already exported"
+            else:
+                soup  = BeautifulSoup(cooked)
+                cooked_parsed = ""
 
-            line_post = [str(i) for i in line_post]
-            line_post = ",".join(line_post).replace("\n", "")
+                try:
+                    soup.blockquote.text
+                except AttributeError:
+                    continue
+                else:
+                    blockquote_parsed = soup.blockquote.text
 
-            final_line = line_discuss_str+","+line_post+"\n"
+                try:
+                    soup.findAll("p")
+                except AttributeError:
+                    continue
+                else:
+                    for p in soup.findAll("p"):
+                        cooked_parsed = cooked_parsed + ''.join(p.findAll(text=True))
 
-            final_line  = final_line.encode('ascii', 'ignore')
-            f.write(final_line)
+                blockquote_parsed = re.sub(r'[^a-zA-Z0-9\s]+', '', blockquote_parsed).lower().strip().replace("\n", " ")
+                cooked_parsed = re.sub(r'[^a-zA-Z0-9\s]+', '', cooked_parsed).lower().strip().replace("\n", " ")
 
-        print "ID : " + str(discuss_id) + " saved"
+                # remove the blockquote section from cooked
+                cooked_parsed = re.sub(blockquote_parsed, "", cooked_parsed)
+
+                # print ">"*20
+                # print "cooked " + str(len(cooked))
+                # print cooked
+                # print "-"*20
+                # print "blockquote parsed " + str(len(blockquote_parsed))
+                # print blockquote_parsed
+                # print "-"*20
+                # print "cooked parsed "+ str(len(cooked_parsed))
+                # print cooked_parsed
+                # print ">"*20
+
+                line_post = [post_number, quote_count, updated_at, moderator, reads, reply_count, id, avg_time, cooked_parsed, topic_id, username, user_created_at, user_id, incoming_link_count, reply_to_post_number]
+
+                # print line_discuss
+                # print len(line_post)
+
+                line_post = [str(i) for i in line_post]
+                line_post = ",".join(line_post).replace("\n", "")
+
+                final_line = line_discuss_str+","+line_post+"\n"
+
+                final_line  = final_line.encode('ascii', 'ignore')
+                f.write(final_line)
+                coll_status.insert_one({"collection":"discussion_export", "id":id})
+                print "Topic ID : " + str(id) + " exported"
 
     f.close()

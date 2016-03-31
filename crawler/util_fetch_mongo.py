@@ -9,7 +9,6 @@ def get_topic_ids(db, discussion_topics):
     for t in cursor:
         lis.append([t["id"], str(t["slug"])])
         # print t["id"], t["slug"]
-
     return lis
 
 
@@ -22,12 +21,12 @@ def get_users(db, COLL_USERS):
         lis.append(t["user"]["username"])
     return lis
 
-
 # retrieve the satus of an id in a collection
 # for example, if a complete discussion (235631) has been dumped
 #              or if a user summary has been dumped
 def check_if_saved(db, COLL_SAVE_STATUS, col, id):
     return db[COLL_SAVE_STATUS].find({"collection":col, "id":id}).count() > 0
+
 
 
 ## check if a user has been saved in a user_list
