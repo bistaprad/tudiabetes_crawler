@@ -1,3 +1,5 @@
+
+
 import sys
 import re
 from bs4 import BeautifulSoup
@@ -11,7 +13,6 @@ def discussions(db, COLL_DISCUSSION, COLL_SAVE_STATUS):
     coll_status = db[COLL_SAVE_STATUS]
 
 
-
     header_disucssion = "like_count,highest_post_number,discuss_id,user_id,title,last_posted_at,participant_count,views,reply_count,links,sum_of_clicks,replies"
     header_replies = ",post_number,quote_count,updated_at,moderator,reads,reply_count,id,avg_time,cooked,topic_id,username,user_created_at,user_id,incoming_link_count,reply_to_post_number"
     header = header_disucssion + header_replies + "\n"
@@ -21,6 +22,7 @@ def discussions(db, COLL_DISCUSSION, COLL_SAVE_STATUS):
     if(coll_status.find({"collection":"discussion_export"}).count() == 0):
         f.write(header)
 
+    cnt = 0
     for d in cursor:
 
         like_count = -1
@@ -154,11 +156,13 @@ def discussions(db, COLL_DISCUSSION, COLL_SAVE_STATUS):
             incoming_link_count = p["incoming_link_count"]
             reply_to_post_number = p["reply_to_post_number"]
 
+
+
             # print cooked
             # cooked = re.search('<p>(.*)</p>', cooked).group(1)
-
+            #
             if fm.check_if_saved(db, COLL_SAVE_STATUS, "discussion_export", id):
-                print "Topic ID : " + str(id) + " already exported"
+                print "Reply ID : " + str(id) + " already exported"
             else:
                 soup  = BeautifulSoup(cooked)
                 cooked_parsed = ""
@@ -166,13 +170,18 @@ def discussions(db, COLL_DISCUSSION, COLL_SAVE_STATUS):
                 try:
                     soup.blockquote.text
                 except AttributeError:
-                    continue
+                    # print "blockquote skipped"
+                    blockquote_parsed = ""
+                    # continue
                 else:
                     blockquote_parsed = soup.blockquote.text
+                # blockquote_parsed = soup.blockquote.text
 
                 try:
                     soup.findAll("p")
                 except AttributeError:
+                    print "p tag skipped"
+                    print soup
                     continue
                 else:
                     for p in soup.findAll("p"):
@@ -195,6 +204,8 @@ def discussions(db, COLL_DISCUSSION, COLL_SAVE_STATUS):
                 # print cooked_parsed
                 # print ">"*20
 
+                # cooked_parsed = ""
+
                 line_post = [post_number, quote_count, updated_at, moderator, reads, reply_count, id, avg_time, cooked_parsed, topic_id, username, user_created_at, user_id, incoming_link_count, reply_to_post_number]
 
                 # print line_discuss
@@ -208,6 +219,8 @@ def discussions(db, COLL_DISCUSSION, COLL_SAVE_STATUS):
                 final_line  = final_line.encode('ascii', 'ignore')
                 f.write(final_line)
                 coll_status.insert_one({"collection":"discussion_export", "id":id})
-                print "Topic ID : " + str(id) + " exported"
+                # cnt += 1
+                # print "Count: ", cnt, " Reply ID: ", id
+                print "Reply ID : " + str(id) + " exported"
 
     f.close()
